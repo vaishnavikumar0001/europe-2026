@@ -236,7 +236,7 @@
     color:var(--text-muted); cursor:pointer; border-radius:10px;
   }
   nav.tabbar button .ic{font-size:1.25rem; line-height:1;}
-  nav.tabbar button .lb{font-size:.66rem; font-weight:600; letter-spacing:.01em;}
+  nav.tabbar button .lb{font-size:.6rem; font-weight:600; letter-spacing:0; white-space:nowrap;}
   nav.tabbar button[aria-selected="true"]{color:var(--primary);}
   nav.tabbar button[aria-selected="true"] .ic{transform:translateY(-1px);}
   nav.tabbar button:focus-visible{outline:2px solid var(--primary); outline-offset:2px;}
@@ -253,14 +253,16 @@
 <div class="pillrow" id="pillrow"></div>
 
 <main>
-  <section class="panel" id="panel-itinerary"></section>
+  <section class="panel" id="panel-home"></section>
+  <section class="panel" id="panel-itinerary" hidden></section>
   <section class="panel" id="panel-hotels" hidden></section>
   <section class="panel" id="panel-trains" hidden></section>
   <section class="panel" id="panel-activities" hidden></section>
 </main>
 
 <nav class="tabbar" id="tabbar" aria-label="Sections">
-  <button data-tab="itinerary" aria-selected="true"><span class="ic">🗓️</span><span class="lb">Itinerary</span></button>
+  <button data-tab="home" aria-selected="true"><span class="ic">🏠</span><span class="lb">Home</span></button>
+  <button data-tab="itinerary" aria-selected="false"><span class="ic">🗓️</span><span class="lb">Itinerary</span></button>
   <button data-tab="hotels" aria-selected="false"><span class="ic">🏨</span><span class="lb">Hotels</span></button>
   <button data-tab="trains" aria-selected="false"><span class="ic">🚄</span><span class="lb">Trains</span></button>
   <button data-tab="activities" aria-selected="false"><span class="ic">🎟️</span><span class="lb">Activities</span></button>
@@ -457,7 +459,7 @@
   }
 
   function renderCountdown(){
-    var p = document.getElementById('panel-itinerary');
+    var p = document.getElementById('panel-home');
     var card = el('div','countdown-card');
     function localDate(y,m,day){ return new Date(y, m-1, day); }
     var now = new Date();
@@ -506,7 +508,7 @@
   }
 
   function renderChecklist(){
-    var p = document.getElementById('panel-itinerary');
+    var p = document.getElementById('panel-home');
     var state = loadTaskState();
     var card = el('div','checklist-card');
     var head = el('div','checklist-head');
@@ -624,6 +626,7 @@
   function setupTabs(){
     var buttons = document.querySelectorAll('#tabbar button');
     var panels = {
+      home: document.getElementById('panel-home'),
       itinerary: document.getElementById('panel-itinerary'),
       hotels: document.getElementById('panel-hotels'),
       trains: document.getElementById('panel-trains'),
@@ -640,8 +643,8 @@
     buttons.forEach(function(b){
       b.addEventListener('click', function(){ activate(b.getAttribute('data-tab')); });
     });
-    var last = 'itinerary';
-    try{ last = localStorage.getItem('europeTripTab') || 'itinerary'; }catch(e){}
+    var last = 'home';
+    try{ last = localStorage.getItem('europeTripTab') || 'home'; }catch(e){}
     activate(last);
     activateTab = function(name){ activate(name, true); };
   }
