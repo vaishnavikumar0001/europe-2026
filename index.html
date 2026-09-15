@@ -142,6 +142,7 @@
     color:#fff; border-radius:16px; padding:18px 18px 16px; margin-bottom:14px;
     text-align:center; box-shadow:var(--shadow);
   }
+  .countdown-eyebrow{font-size:1.3rem; line-height:1; margin-bottom:2px; opacity:.9;}
   .countdown-num{
     font-family:var(--font-display); font-weight:700; font-size:2.7rem; line-height:1;
     font-variant-numeric:tabular-nums; text-wrap:balance;
@@ -247,8 +248,8 @@
 </style>
 
 <div class="topbar">
-  <h1>Europe Trip Companion</h1>
-  <div class="sub">OCT 1–11, 2026 · FRA → HEIDELBERG → MUNICH → SALZBURG → BRUSSELS → GHENT/BRUGES → AMSTERDAM → FRA</div>
+  <h1>🧭 Europe Trip Companion</h1>
+  <div class="sub">🇩🇪🇦🇹🇧🇪🇳🇱 OCT 1–11, 2026 · FRA → HEIDELBERG → MUNICH → SALZBURG → BRUSSELS → GHENT/BRUGES → AMSTERDAM → FRA</div>
 </div>
 <div class="pillrow" id="pillrow"></div>
 
@@ -264,7 +265,7 @@
   <button data-tab="home" aria-selected="true"><span class="ic">🏠</span><span class="lb">Home</span></button>
   <button data-tab="itinerary" aria-selected="false"><span class="ic">🗓️</span><span class="lb">Itinerary</span></button>
   <button data-tab="hotels" aria-selected="false"><span class="ic">🏨</span><span class="lb">Hotels</span></button>
-  <button data-tab="trains" aria-selected="false"><span class="ic">🚄</span><span class="lb">Trains</span></button>
+  <button data-tab="trains" aria-selected="false"><span class="ic">🚆</span><span class="lb">Trains</span></button>
   <button data-tab="activities" aria-selected="false"><span class="ic">🎟️</span><span class="lb">Activities</span></button>
 </nav>
 
@@ -401,25 +402,25 @@
   ];
 
   var ACTIVITIES = [
-    { date:"Oct 2", title:"Oktoberfest tent table reservation", status:"Optional", badge:"neutral",
+    { date:"Oct 2", icon:"🍺", title:"Oktoberfest tent table reservation", status:"Optional", badge:"neutral",
       desc:"Not required to get in, but worth it for guaranteed seating at peak hours." },
-    { date:"Oct 3", title:"Salzburg sightseeing", status:"No booking needed", badge:"good",
+    { date:"Oct 3", icon:"⛰️", title:"Salzburg sightseeing", status:"No booking needed", badge:"good",
       desc:"Self-guided — Altstadt, fortress, St. Peter's Abbey, Augustiner Bräustübl." },
-    { date:"Oct 5", title:"Belgian Chocolate Workshop", status:"Booked", badge:"good",
+    { date:"Oct 5", icon:"🍫", title:"Belgian Chocolate Workshop", status:"Booked", badge:"good",
       desc:"4:30–7:00pm (arrive by 4:25pm) · Voldersstraat 30, 1000 Brussels · 2.5 hrs, in English · 2 adults · <span class=\"price\">€113.20 paid in full</span> · with 1USUAL Experiences Belgium · Booking #254609158936578." },
-    { date:"Oct 9", title:"Anne Frank House", status:"Booked", badge:"good",
+    { date:"Oct 9", icon:"🏛️", title:"Anne Frank House", status:"Booked", badge:"good",
       desc:"Introductory program (English) · 7:45pm entry, Entrance 2 · 2 adult tickets · <span class=\"price\">€23.50/adult</span> · tickets are on your phone as a QR code — no printing needed. Arrive 5 minutes early; no large bags or trolleys." }
   ];
 
   var TASKS = [
-    { id:"t1", text:"Download the train app for Germany (DB Navigator)" },
-    { id:"t2", text:"Download the train app for Belgium & Amsterdam (SNCB / NS)" },
-    { id:"t3", text:"Book train tickets: Brussels → Amsterdam" },
-    { id:"t4", text:"Book train tickets: Amsterdam → Frankfurt" },
-    { id:"t5", text:"Buy tickets: Belgian chocolate-making class" },
-    { id:"t6", text:"Brussels — castle tickets" },
-    { id:"t7", text:"Book Luxembourg hotel" },
-    { id:"t8", text:"Book Brussels hotel" }
+    { id:"t1", icon:"🇩🇪", text:"Download the train app for Germany (DB Navigator)" },
+    { id:"t2", icon:"🇧🇪", text:"Download the train app for Belgium & Amsterdam (SNCB / NS)" },
+    { id:"t3", icon:"🚆", text:"Book train tickets: Brussels → Amsterdam" },
+    { id:"t4", icon:"🚆", text:"Book train tickets: Amsterdam → Frankfurt" },
+    { id:"t5", icon:"🍫", text:"Buy tickets: Belgian chocolate-making class" },
+    { id:"t6", icon:"🏰", text:"Brussels — castle tickets" },
+    { id:"t7", icon:"🇱🇺", text:"Book Luxembourg hotel" },
+    { id:"t8", icon:"🇧🇪", text:"Book Brussels hotel" }
   ];
 
   var activateTab; // assigned by setupTabs, called from pill clicks
@@ -429,6 +430,16 @@
     if(cls) e.className = cls;
     if(html !== undefined) e.innerHTML = html;
     return e;
+  }
+
+  function flagFor(text){
+    if(/Heidelberg|Munich|Frankfurt/.test(text)) return '🇩🇪';
+    if(/Salzburg|Austria/.test(text)) return '🇦🇹';
+    if(/Brussels|Ghent|Bruges/.test(text)) return '🇧🇪';
+    if(/Amsterdam/.test(text)) return '🇳🇱';
+    if(/Hyderabad|India/.test(text)) return '🇮🇳';
+    if(/Austin/.test(text)) return '🇺🇸';
+    return '';
   }
 
   function shortDate(d){
@@ -471,28 +482,34 @@
     var homeDate = localDate(2026,10,29);
     var msPerDay = 86400000;
     var num, label, sub;
+    var eyebrow;
     if(today < tripStart){
       var days = Math.round((tripStart - today) / msPerDay);
       num = days;
       label = (days === 1 ? 'day' : 'days') + ' to go';
-      sub = 'until Frankfurt · Oct 1, 2026';
+      sub = '🇩🇪 until Frankfurt · Oct 1, 2026';
+      eyebrow = '✈️';
     } else if(today <= europeEnd){
       var dayIdx = Math.round((today - tripStart) / msPerDay) + 1;
       var match = DAYS.filter(function(dd){ return dd.day === dayIdx; })[0];
       num = dayIdx;
       label = 'Day ' + dayIdx + ' of 11';
-      sub = match ? match.city : 'On the Europe leg';
+      sub = match ? (flagFor(match.city) + ' ' + match.city) : 'On the Europe leg';
+      eyebrow = '🧭';
     } else if(today < homeDate){
       var days2 = Math.round((homeDate - today) / msPerDay);
       num = days2;
       label = (days2 === 1 ? 'day' : 'days') + ' until Austin';
-      sub = 'Currently in Hyderabad';
+      sub = '🇮🇳 Currently in Hyderabad';
+      eyebrow = '✈️';
     } else {
       num = '✈️';
       label = 'Welcome home';
-      sub = 'Trip complete';
+      sub = '🇺🇸 Trip complete';
+      eyebrow = '🎉';
     }
     card.innerHTML =
+      '<div class="countdown-eyebrow">' + eyebrow + '</div>' +
       '<div class="countdown-num">' + num + '</div>' +
       '<div class="countdown-label">' + label + '</div>' +
       '<div class="countdown-sub">' + sub + '</div>';
@@ -521,7 +538,7 @@
     var state = loadTaskState();
     var card = el('div','checklist-card');
     var head = el('div','checklist-head');
-    head.appendChild(el('div','checklist-title','Still to book'));
+    head.appendChild(el('div','checklist-title','📝 Still to book'));
     var progress = el('div','checklist-progress');
     head.appendChild(progress);
     card.appendChild(head);
@@ -538,7 +555,7 @@
       cb.checked = !!state[t.id];
       var lbl = document.createElement('label');
       lbl.setAttribute('for', cb.id);
-      lbl.textContent = t.text;
+      lbl.innerHTML = '<span aria-hidden="true">' + (t.icon || '•') + '</span> ' + t.text;
       cb.addEventListener('change', function(){
         state[t.id] = cb.checked;
         row.classList.toggle('done', cb.checked);
@@ -556,7 +573,7 @@
 
   function renderItinerary(){
     var p = document.getElementById('panel-itinerary');
-    p.appendChild(el('div','section-label','Day by day'));
+    p.appendChild(el('div','section-label','🗓️ Day by day'));
     DAYS.forEach(function(d){
       var card = el('div','day-card');
       card.id = 'day-card-' + d.day;
@@ -566,7 +583,7 @@
       head.appendChild(left);
       head.appendChild(el('span','tag '+d.tag, d.tagLabel));
       card.appendChild(head);
-      card.appendChild(el('div','day-city', d.city));
+      card.appendChild(el('div','day-city', flagFor(d.city) + ' ' + d.city));
       card.appendChild(el('p','day-title', d.title));
       var body = el('div','day-body');
       var ul = el('ul');
@@ -576,23 +593,23 @@
       if(d.note) card.appendChild(el('div','note', d.note));
       p.appendChild(card);
     });
-    p.appendChild(el('div','section-label','Onward'));
+    p.appendChild(el('div','section-label','🌍 Onward'));
     MILESTONES.forEach(function(m){
       var row = el('div','milestone');
       row.appendChild(el('div','m-date', m.date));
-      row.appendChild(el('div','m-text', m.text));
+      row.appendChild(el('div','m-text', flagFor(m.text) + ' ' + m.text));
       p.appendChild(row);
     });
   }
 
   function renderHotels(){
     var p = document.getElementById('panel-hotels');
-    p.appendChild(el('div','section-label','All five nights, booked'));
+    p.appendChild(el('div','section-label','🏨 All five nights, booked'));
     HOTELS.forEach(function(h){
       var card = el('div','hotel-card');
       var top = el('div','hotel-top');
       var left = el('div',null,
-        '<div class="hotel-city">'+h.city+'</div><div class="hotel-dates">'+h.dates+'</div>');
+        '<div class="hotel-city">'+flagFor(h.city)+' '+h.city+'</div><div class="hotel-dates">'+h.dates+'</div>');
       top.appendChild(left);
       top.appendChild(el('span','badge '+h.badge, h.status));
       card.appendChild(top);
@@ -604,7 +621,7 @@
 
   function renderTrains(){
     var p = document.getElementById('panel-trains');
-    p.appendChild(el('div','section-label','Getting between cities'));
+    p.appendChild(el('div','section-label','🚆 Getting between cities'));
     LEGS.forEach(function(l){
       var card = el('div','leg-card');
       var icon = el('div','leg-icon'+(l.mode==='air' ? ' air' : ''), l.mode==='air' ? '✈️' : '🚆');
@@ -619,14 +636,14 @@
 
   function renderActivities(){
     var p = document.getElementById('panel-activities');
-    p.appendChild(el('div','section-label','Booked & to-book'));
+    p.appendChild(el('div','section-label','🎟️ Booked & to-book'));
     ACTIVITIES.forEach(function(a){
       var card = el('div','act-card');
       var top = el('div','act-top');
       top.appendChild(el('div','act-date', a.date));
       top.appendChild(el('span','badge '+a.badge, a.status));
       card.appendChild(top);
-      card.appendChild(el('p','act-title', a.title));
+      card.appendChild(el('p','act-title', (a.icon || '🎟️') + ' ' + a.title));
       card.appendChild(el('div','act-desc', a.desc));
       p.appendChild(card);
     });
