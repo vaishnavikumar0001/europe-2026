@@ -136,6 +136,43 @@
   .milestone .m-date{font-family:var(--font-mono); font-size:.72rem; font-weight:600; color:var(--text-muted); flex:0 0 auto; width:96px;}
   .milestone .m-text{font-size:.88rem; font-weight:500;}
 
+  /* ---- Countdown ---- */
+  .countdown-card{
+    background:linear-gradient(135deg, var(--primary), var(--primary-strong));
+    color:#fff; border-radius:16px; padding:18px 18px 16px; margin-bottom:14px;
+    text-align:center; box-shadow:var(--shadow);
+  }
+  .countdown-num{
+    font-family:var(--font-display); font-weight:700; font-size:2.7rem; line-height:1;
+    font-variant-numeric:tabular-nums; text-wrap:balance;
+  }
+  .countdown-label{font-size:.86rem; font-weight:600; opacity:.95; margin-top:4px;}
+  .countdown-sub{font-family:var(--font-mono); font-size:.7rem; opacity:.78; margin-top:6px; letter-spacing:.02em;}
+
+  /* ---- Checklist ---- */
+  .checklist-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); padding:14px 15px; margin-bottom:14px;
+  }
+  .checklist-head{display:flex; justify-content:space-between; align-items:baseline; gap:8px; margin-bottom:6px;}
+  .checklist-title{font-family:var(--font-display); font-weight:600; font-size:1.02rem;}
+  .checklist-progress{font-family:var(--font-mono); font-size:.72rem; color:var(--text-muted); font-variant-numeric:tabular-nums; flex:0 0 auto;}
+  .check-item{
+    display:flex; align-items:flex-start; gap:10px; padding:9px 0;
+    border-top:1px solid var(--border);
+  }
+  .check-item:first-of-type{border-top:none; padding-top:6px;}
+  .check-item input[type="checkbox"]{
+    appearance:none; -webkit-appearance:none; width:20px; height:20px; flex:0 0 auto;
+    border:2px solid var(--border); border-radius:6px; margin-top:1px; cursor:pointer;
+    display:grid; place-content:center; background:var(--surface);
+  }
+  .check-item input[type="checkbox"]:checked{background:var(--good); border-color:var(--good);}
+  .check-item input[type="checkbox"]:checked::after{content:"✓"; color:#fff; font-size:13px; font-weight:700; line-height:1;}
+  .check-item input[type="checkbox"]:focus-visible{outline:2px solid var(--primary); outline-offset:2px;}
+  .check-item label{font-size:.9rem; line-height:1.4; cursor:pointer;}
+  .check-item.done label{color:var(--text-muted); text-decoration:line-through;}
+
   /* ---- Hotels ---- */
   .hotel-card{
     background:var(--surface); border:1px solid var(--border); border-radius:14px;
@@ -370,6 +407,17 @@
       desc:"Timed entry · <span class=\"price\">~€16/adult</span> · tickets release weekly on Tuesdays at 10am Amsterdam time — book as soon as your week's slots open." }
   ];
 
+  var TASKS = [
+    { id:"t1", text:"Download the train app for Germany (DB Navigator)" },
+    { id:"t2", text:"Download the train app for Belgium & Amsterdam (SNCB / NS)" },
+    { id:"t3", text:"Book train tickets: Brussels → Amsterdam" },
+    { id:"t4", text:"Book train tickets: Amsterdam → Frankfurt" },
+    { id:"t5", text:"Buy tickets: Belgian chocolate-making class" },
+    { id:"t6", text:"Brussels — castle tickets" },
+    { id:"t7", text:"Book Luxembourg hotel" },
+    { id:"t8", text:"Book Brussels hotel" }
+  ];
+
   var activateTab; // assigned by setupTabs, called from pill clicks
 
   function el(tag, cls, html){
@@ -406,6 +454,93 @@
       btn.addEventListener('click', function(){ scrollToDay(d.day); });
       row.appendChild(btn);
     });
+  }
+
+  function renderCountdown(){
+    var p = document.getElementById('panel-itinerary');
+    var card = el('div','countdown-card');
+    function localDate(y,m,day){ return new Date(y, m-1, day); }
+    var now = new Date();
+    var today = localDate(now.getFullYear(), now.getMonth()+1, now.getDate());
+    var tripStart = localDate(2026,10,1);
+    var europeEnd = localDate(2026,10,11);
+    var homeDate = localDate(2026,10,29);
+    var msPerDay = 86400000;
+    var num, label, sub;
+    if(today < tripStart){
+      var days = Math.round((tripStart - today) / msPerDay);
+      num = days;
+      label = (days === 1 ? 'day' : 'days') + ' to go';
+      sub = 'until Frankfurt · Oct 1, 2026';
+    } else if(today <= europeEnd){
+      var dayIdx = Math.round((today - tripStart) / msPerDay) + 1;
+      var match = DAYS.filter(function(dd){ return dd.day === dayIdx; })[0];
+      num = dayIdx;
+      label = 'Day ' + dayIdx + ' of 11';
+      sub = match ? match.city : 'On the Europe leg';
+    } else if(today < homeDate){
+      var days2 = Math.round((homeDate - today) / msPerDay);
+      num = days2;
+      label = (days2 === 1 ? 'day' : 'days') + ' until Austin';
+      sub = 'Currently in Hyderabad';
+    } else {
+      num = '✈️';
+      label = 'Welcome home';
+      sub = 'Trip complete';
+    }
+    card.innerHTML =
+      '<div class="countdown-num">' + num + '</div>' +
+      '<div class="countdown-label">' + label + '</div>' +
+      '<div class="countdown-sub">' + sub + '</div>';
+    p.appendChild(card);
+  }
+
+  function loadTaskState(){
+    try{
+      var raw = localStorage.getItem('europeTripTasks');
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  }
+  function saveTaskState(state){
+    try{ localStorage.setItem('europeTripTasks', JSON.stringify(state)); }catch(e){}
+  }
+
+  function renderChecklist(){
+    var p = document.getElementById('panel-itinerary');
+    var state = loadTaskState();
+    var card = el('div','checklist-card');
+    var head = el('div','checklist-head');
+    head.appendChild(el('div','checklist-title','Still to book'));
+    var progress = el('div','checklist-progress');
+    head.appendChild(progress);
+    card.appendChild(head);
+    var list = el('div','check-list');
+    function updateProgress(){
+      var done = TASKS.filter(function(t){ return !!state[t.id]; }).length;
+      progress.textContent = done + ' of ' + TASKS.length + ' done';
+    }
+    TASKS.forEach(function(t){
+      var row = el('div','check-item' + (state[t.id] ? ' done' : ''));
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.id = 'chk-' + t.id;
+      cb.checked = !!state[t.id];
+      var lbl = document.createElement('label');
+      lbl.setAttribute('for', cb.id);
+      lbl.textContent = t.text;
+      cb.addEventListener('change', function(){
+        state[t.id] = cb.checked;
+        row.classList.toggle('done', cb.checked);
+        saveTaskState(state);
+        updateProgress();
+      });
+      row.appendChild(cb);
+      row.appendChild(lbl);
+      list.appendChild(row);
+    });
+    card.appendChild(list);
+    updateProgress();
+    p.appendChild(card);
   }
 
   function renderItinerary(){
@@ -512,6 +647,8 @@
   }
 
   renderPills();
+  renderCountdown();
+  renderChecklist();
   renderItinerary();
   renderHotels();
   renderTrains();
