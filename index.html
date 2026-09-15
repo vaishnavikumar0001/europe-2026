@@ -1,0 +1,521 @@
+<title>Europe Trip Companion</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5EFEC; --surface:#FFFFFF; --surface-alt:#FBF3EF; --border:#E3D3CC;
+    --text:#2B1917; --text-muted:#7C5E56;
+    --primary:#6E2A34; --primary-strong:#4E1D26; --primary-soft:#F1DEE0;
+    --accent:#B5792E; --accent-soft:#F3E3C7;
+    --trip:#A8511F; --trip-soft:#F5DFCB;
+    --neutral-tag:#79695C; --neutral-soft:#EEE6DC;
+    --flight:#6B3F5E; --flight-soft:#EEE0EA;
+    --good:#4F7A45; --good-soft:#E3EDDC;
+    --warn:#A83E23; --warn-soft:#F5DFD2;
+    --shadow: 0 1px 2px rgba(43,25,23,.07), 0 6px 16px rgba(43,25,23,.08);
+    --font-display:'Fraunces', Georgia, serif;
+    --font-body:'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono:'IBM Plex Mono', ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1B1210; --surface:#291C19; --surface-alt:#332420; --border:#4A362F;
+      --text:#F3E6DF; --text-muted:#C4A99D;
+      --primary:#E0919E; --primary-strong:#F0AFB8; --primary-soft:#3D2229;
+      --accent:#E3B15E; --accent-soft:#3D2E14;
+      --trip:#E28C4C; --trip-soft:#3A2414;
+      --neutral-tag:#BBAA9D; --neutral-soft:#332822;
+      --flight:#CC9FC2; --flight-soft:#2E2130;
+      --good:#8FC084; --good-soft:#1E2E1A;
+      --warn:#E38C5E; --warn-soft:#3A2412;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 6px 20px rgba(0,0,0,.4);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1B1210; --surface:#291C19; --surface-alt:#332420; --border:#4A362F;
+    --text:#F3E6DF; --text-muted:#C4A99D;
+    --primary:#E0919E; --primary-strong:#F0AFB8; --primary-soft:#3D2229;
+    --accent:#E3B15E; --accent-soft:#3D2E14;
+    --trip:#E28C4C; --trip-soft:#3A2414;
+    --neutral-tag:#BBAA9D; --neutral-soft:#332822;
+    --flight:#CC9FC2; --flight-soft:#2E2130;
+    --good:#8FC084; --good-soft:#1E2E1A;
+    --warn:#E38C5E; --warn-soft:#3A2412;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg); color:var(--text); font-family:var(--font-body);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+
+  .topbar{
+    flex:0 0 auto; background:var(--primary); color:#fff;
+    padding:calc(env(safe-area-inset-top,0px) + 14px) 18px 14px;
+    box-shadow:var(--shadow); position:relative; z-index:2;
+  }
+  .topbar h1{
+    font-family:var(--font-display); font-weight:700; font-size:1.35rem;
+    margin:0 0 2px; letter-spacing:.2px; text-wrap:balance;
+  }
+  .topbar .sub{font-size:.78rem; opacity:.85; font-family:var(--font-mono); letter-spacing:.02em;}
+
+  .pillrow{
+    flex:0 0 auto; display:flex; gap:8px; overflow-x:auto; padding:10px 14px;
+    background:var(--surface-alt); border-bottom:1px solid var(--border);
+    -webkit-overflow-scrolling:touch;
+  }
+  .pillrow::-webkit-scrollbar{display:none;}
+  .pill{
+    flex:0 0 auto; font-size:.72rem; font-weight:600; color:var(--primary);
+    background:var(--primary-soft); border:1px solid var(--border);
+    border-radius:999px; padding:5px 11px; white-space:nowrap;
+    font-family:var(--font-mono); font-variant-numeric:tabular-nums;
+    cursor:pointer; -webkit-tap-highlight-color:transparent;
+  }
+  .pill:active{transform:scale(.96);}
+  .pill:focus-visible{outline:2px solid var(--primary); outline-offset:2px;}
+  @keyframes pillJumpFlash{
+    0%{box-shadow:0 0 0 3px var(--accent);}
+    100%{box-shadow:0 0 0 0 rgba(0,0,0,0);}
+  }
+  .day-card.jumped{animation:pillJumpFlash 1.1s ease-out;}
+
+  main{flex:1 1 auto; overflow-y:auto; -webkit-overflow-scrolling:touch;}
+  .panel{padding:16px 14px calc(env(safe-area-inset-bottom,0px) + 88px);}
+  .panel[hidden]{display:none;}
+
+  .section-label{
+    font-family:var(--font-mono); font-size:.7rem; font-weight:600;
+    text-transform:uppercase; letter-spacing:.09em; color:var(--text-muted);
+    margin:4px 2px 10px;
+  }
+
+  /* ---- Itinerary cards ---- */
+  .day-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); padding:14px 15px; margin-bottom:12px;
+  }
+  .day-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:8px;}
+  .day-head-left{display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;}
+  .day-num{
+    font-family:var(--font-mono); font-size:.68rem; font-weight:600; color:var(--text-muted);
+    letter-spacing:.06em;
+  }
+  .day-date{font-family:var(--font-mono); font-size:.78rem; font-weight:600; color:var(--text);}
+  .tag{
+    font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    padding:3px 9px; border-radius:999px; white-space:nowrap; flex:0 0 auto;
+  }
+  .tag.flight{background:var(--flight-soft); color:var(--flight);}
+  .tag.oktoberfest{background:var(--accent-soft); color:var(--accent);}
+  .tag.daytrip{background:var(--trip-soft); color:var(--trip);}
+  .tag.travel{background:var(--neutral-soft); color:var(--neutral-tag);}
+  .tag.stay{background:var(--primary-soft); color:var(--primary);}
+
+  .day-city{font-family:var(--font-mono); font-size:.72rem; color:var(--text-muted); margin-bottom:2px;}
+  .day-title{font-family:var(--font-display); font-weight:600; font-size:1.05rem; margin:0 0 8px; text-wrap:balance;}
+  .day-body ul{margin:0; padding-left:1.1em; display:flex; flex-direction:column; gap:6px;}
+  .day-body li{font-size:.9rem; line-height:1.45;}
+  .day-body li strong{color:var(--text);}
+  .note{
+    margin-top:10px; padding:9px 11px; background:var(--surface-alt);
+    border-left:3px solid var(--accent); border-radius:6px;
+    font-size:.82rem; color:var(--text-muted); line-height:1.5;
+  }
+
+  .milestone{
+    display:flex; align-items:center; gap:12px; background:var(--surface-alt);
+    border:1px dashed var(--border); border-radius:12px; padding:12px 14px; margin-bottom:10px;
+  }
+  .milestone .m-date{font-family:var(--font-mono); font-size:.72rem; font-weight:600; color:var(--text-muted); flex:0 0 auto; width:96px;}
+  .milestone .m-text{font-size:.88rem; font-weight:500;}
+
+  /* ---- Hotels ---- */
+  .hotel-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); padding:14px 15px; margin-bottom:12px;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .hotel-top{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+  .hotel-city{font-family:var(--font-display); font-weight:600; font-size:1.05rem;}
+  .hotel-dates{font-family:var(--font-mono); font-size:.74rem; color:var(--text-muted); margin-top:1px;}
+  .hotel-name{font-size:.92rem; font-weight:600; color:var(--primary);}
+  .hotel-addr{font-size:.82rem; color:var(--text-muted); line-height:1.4;}
+  .badge{
+    font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+    padding:3px 9px; border-radius:999px; flex:0 0 auto; white-space:nowrap;
+  }
+  .badge.good{background:var(--good-soft); color:var(--good);}
+  .badge.warn{background:var(--warn-soft); color:var(--warn);}
+  .badge.neutral{background:var(--neutral-soft); color:var(--neutral-tag);}
+
+  /* ---- Trains ---- */
+  .leg-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); padding:13px 15px; margin-bottom:10px;
+    display:flex; align-items:center; gap:12px;
+  }
+  .leg-icon{
+    flex:0 0 auto; width:38px; height:38px; border-radius:10px;
+    display:flex; align-items:center; justify-content:center; font-size:1.15rem;
+    background:var(--primary-soft);
+  }
+  .leg-icon.air{background:var(--flight-soft);}
+  .leg-main{flex:1 1 auto; min-width:0;}
+  .leg-route{font-weight:600; font-size:.92rem; margin-bottom:2px; text-wrap:balance;}
+  .leg-meta{font-size:.78rem; color:var(--text-muted); line-height:1.4;}
+  .leg-dur{
+    flex:0 0 auto; font-family:var(--font-mono); font-weight:600; font-size:.82rem;
+    color:var(--primary); font-variant-numeric:tabular-nums; text-align:right;
+  }
+
+  /* ---- Activities ---- */
+  .act-card{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:var(--shadow); padding:14px 15px; margin-bottom:12px;
+  }
+  .act-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:6px;}
+  .act-date{font-family:var(--font-mono); font-size:.72rem; font-weight:600; color:var(--text-muted);}
+  .act-title{font-family:var(--font-display); font-weight:600; font-size:1rem; margin:2px 0 6px;}
+  .act-desc{font-size:.88rem; line-height:1.5; color:var(--text);}
+  .act-desc .price{font-family:var(--font-mono); font-weight:600; color:var(--primary);}
+
+  /* ---- Tab bar ---- */
+  nav.tabbar{
+    flex:0 0 auto; position:relative; z-index:3;
+    display:flex; background:var(--surface); border-top:1px solid var(--border);
+    padding:6px 4px calc(env(safe-area-inset-bottom,0px) + 6px);
+    box-shadow:0 -2px 10px rgba(22,35,46,.06);
+  }
+  nav.tabbar button{
+    flex:1 1 0; display:flex; flex-direction:column; align-items:center; gap:2px;
+    background:none; border:none; padding:6px 2px; font-family:var(--font-body);
+    color:var(--text-muted); cursor:pointer; border-radius:10px;
+  }
+  nav.tabbar button .ic{font-size:1.25rem; line-height:1;}
+  nav.tabbar button .lb{font-size:.66rem; font-weight:600; letter-spacing:.01em;}
+  nav.tabbar button[aria-selected="true"]{color:var(--primary);}
+  nav.tabbar button[aria-selected="true"] .ic{transform:translateY(-1px);}
+  nav.tabbar button:focus-visible{outline:2px solid var(--primary); outline-offset:2px;}
+
+  @media (prefers-reduced-motion:no-preference){
+    .day-card, .hotel-card, .leg-card, .act-card{transition:transform .15s ease;}
+  }
+</style>
+
+<div class="topbar">
+  <h1>Europe Trip Companion</h1>
+  <div class="sub">OCT 1–11, 2026 · FRA → HEIDELBERG → MUNICH → SALZBURG → BRUSSELS → GHENT/BRUGES → AMSTERDAM → FRA</div>
+</div>
+<div class="pillrow" id="pillrow"></div>
+
+<main>
+  <section class="panel" id="panel-itinerary"></section>
+  <section class="panel" id="panel-hotels" hidden></section>
+  <section class="panel" id="panel-trains" hidden></section>
+  <section class="panel" id="panel-activities" hidden></section>
+</main>
+
+<nav class="tabbar" id="tabbar" aria-label="Sections">
+  <button data-tab="itinerary" aria-selected="true"><span class="ic">🗓️</span><span class="lb">Itinerary</span></button>
+  <button data-tab="hotels" aria-selected="false"><span class="ic">🏨</span><span class="lb">Hotels</span></button>
+  <button data-tab="trains" aria-selected="false"><span class="ic">🚄</span><span class="lb">Trains</span></button>
+  <button data-tab="activities" aria-selected="false"><span class="ic">🎟️</span><span class="lb">Activities</span></button>
+</nav>
+
+<script>
+(function(){
+  var DAYS = [
+    { day:1, date:"Thu, Oct 1", tag:"flight", tagLabel:"Arrival", city:"Frankfurt → Heidelberg",
+      title:"Land in Frankfurt, on to Heidelberg for the night",
+      bullets:[
+        "Arrive Frankfurt Airport (FRA); train to Heidelberg, ~45min–1h",
+        "Check into <strong>Hotel Am Schloss</strong>",
+        "Altstadt, Heidelberg Castle, Philosophers' Walk, Old Bridge",
+        "Early night after the flight"
+      ]},
+    { day:2, date:"Fri, Oct 2", tag:"oktoberfest", tagLabel:"Oktoberfest", city:"Heidelberg → Munich",
+      title:"Early train to Munich, a quick city loop, then the Wiesn",
+      bullets:[
+        "Train Heidelberg → Munich, ~2h30–3h; early departure (~7:30–8am) arrives ~10–10:30am",
+        "Check into <strong>Hotel München City Center, Affiliated by Meliá</strong>",
+        "Old Town loop (~10:45am–12:30pm): Marienplatz & the Glockenspiel (11am show), Frauenkirche, Viktualienmarkt",
+        "Short English Garden stop (~12:30–2pm): Eisbach wave surfers, Chinese Tower beer garden",
+        "Theresienwiese by ~2:30–3pm — tents run till 10:30pm Fridays, so ~7.5–8 hrs at the Wiesn",
+        "Evening: Hendl, Brezn, Käsespätzle between the tents"
+      ],
+      note:"Fitting in the Old Town walk and the English Garden pushes Oktoberfest to a mid-afternoon start — still a solid ~7.5–8 hours there. Oct 3 is German Unity Day, so Friday is the lighter crowd day anyway."},
+    { day:3, date:"Sat, Oct 3", tag:"daytrip", tagLabel:"Day Trip · Austria", city:"Salzburg, Austria",
+      title:"Salzburg: fortress, abbey, and a beer hall by the river",
+      bullets:[
+        "Direct train Munich → Salzburg, ~1h30m each way; early start ~8:30–9am",
+        "Salzburg's Altstadt (UNESCO old town) and Hohensalzburg Fortress (funicular up)",
+        "<strong>St. Peter's Abbey</strong> — church, cemetery, and the cliffside catacombs; Stiftskeller St. Peter next door for lunch",
+        "Mozart's birthplace and Mirabell Palace gardens",
+        "Early evening at <strong>Augustiner Bräustübl</strong> — self-serve steins from wooden casks, pretzels and half-chicken, huge Biergarten",
+        "Back to Munich by later evening"
+      ],
+      note:"Innsbruck is a solid alternative (~1h40–2h each way) if you'd rather trade the old-town/Mozart charm for Alpine scenery."},
+    { day:4, date:"Sun, Oct 4", tag:"travel", tagLabel:"Long Travel Day", city:"Munich → Brussels",
+      title:"Long travel day to Brussels",
+      bullets:[
+        "No direct train; ~6h45–9h via Cologne, 1–2 changes",
+        "Check into <strong>Pillows City Hotel Brussels Centre</strong>",
+        "Light evening after a full day in Salzburg the day before"
+      ],
+      note:"A Luxembourg overnight stopover (Munich → Frankfurt → Luxembourg, ~6–6.5h) is still just an option being considered — not built into this plan yet."},
+    { day:5, date:"Mon, Oct 5", tag:"stay", tagLabel:"Brussels", city:"Brussels",
+      title:"Full day in Brussels — including the chocolate-making class",
+      bullets:[
+        "Morning: Grand Place, Manneken Pis, Mont des Arts, the Royal Galleries for chocolate shopping",
+        "Lunch: mussels and fries near the Grand Place, finished by ~1:30pm",
+        "<strong>2:00–4:30pm — Belgian Chocolate Making Workshop</strong>, Voldersstraat 30 · ~2.5 hrs · ~$69/person",
+        "Evening: the Atomium/EU Quarter, or a relaxed Belgian beer tasting"
+      ]},
+    { day:6, date:"Tue, Oct 6", tag:"daytrip", tagLabel:"Day Trip", city:"Ghent & Bruges",
+      title:"Ghent on the way to Bruges",
+      bullets:[
+        "Early train Brussels → Ghent, ~30 min",
+        "Ghent (~2–2.5h): Graslei & Korenlei, Gravensteen, St. Bavo's Cathedral, Patershol lanes",
+        "Beer stop at <strong>Dulle Griet</strong> in Patershol — the Kwak, served in its tall glass with the wooden stand",
+        "Onward train Ghent → Bruges, ~25 min",
+        "Bruges afternoon–evening: canals, the Belfry, the Markt, chocolate and a proper Belgian beer",
+        "Direct train Bruges → Brussels, ~1h15m, for the evening"
+      ],
+      note:"Full day — an ~8–8:30am start from Brussels helps. Ghent's the easier one to trim if the pace runs long."},
+    { day:7, date:"Wed, Oct 7", tag:"travel", tagLabel:"Travel Day", city:"Brussels → Amsterdam",
+      title:"Last Brussels morning, then on to Amsterdam",
+      bullets:[
+        "Relaxed final morning in Brussels",
+        "Afternoon Eurostar/Thalys to Amsterdam, ~1h50m",
+        "Check into <strong>Hotel Mercier</strong>"
+      ]},
+    { day:8, date:"Thu, Oct 8", tag:"stay", tagLabel:"Amsterdam", city:"Amsterdam",
+      title:"Amsterdam, day 1 — including the Anne Frank House",
+      bullets:[
+        "<strong>Anne Frank House</strong> (timed entry, ~€16/adult) + the Jordaan",
+        "Rijksmuseum or Van Gogh Museum",
+        "Evening canal cruise"
+      ],
+      note:"Tickets release weekly (Tuesdays, 10am Amsterdam time) six weeks out — the release for this week already happened, so book now. Evening slots (7–9pm) tend to last longest."},
+    { day:9, date:"Fri, Oct 9", tag:"stay", tagLabel:"Amsterdam", city:"Amsterdam",
+      title:"Amsterdam, day 2",
+      bullets:[
+        "The other big museum — whichever's left, Rijksmuseum or Van Gogh",
+        "Vondelpark",
+        "Albert Cuyp Market",
+        "A bike ride through the canal ring"
+      ]},
+    { day:10, date:"Sat, Oct 10", tag:"travel", tagLabel:"Travel Day", city:"Amsterdam → Frankfurt",
+      title:"Last Amsterdam morning, evening train to Frankfurt Airport",
+      bullets:[
+        "Relaxed final morning in Amsterdam",
+        "Direct train to Frankfurt <strong>Flughafen Fernbahnhof</strong> (not Hbf), ~3h38m",
+        "Check into <strong>Sheraton Frankfurt Airport Hotel &amp; Conference Center</strong>"
+      ]},
+    { day:11, date:"Sun, Oct 11", tag:"flight", tagLabel:"Departure", city:"Frankfurt → Hyderabad",
+      title:"Fly to Hyderabad — 1pm departure",
+      bullets:[
+        "Relaxed morning at the airport hotel",
+        "At the terminal by ~10:30am",
+        "Depart Frankfurt (FRA) 1:00pm for Hyderabad"
+      ]}
+  ];
+
+  var MILESTONES = [
+    { date:"Oct 11–29", text:"Hyderabad, India — family visit" },
+    { date:"Oct 29", text:"Fly Hyderabad → Austin, Texas — home" }
+  ];
+
+  var HOTELS = [
+    { city:"Heidelberg", dates:"Oct 1 – 2 · 1 night", name:"Hotel Am Schloss",
+      addr:"Zwinger Str. 20, 69117 Heidelberg, Germany", status:"Finalized", badge:"good" },
+    { city:"Munich", dates:"Oct 2 – 4 · 2 nights", name:"Hotel München City Center, Affiliated by Meliá",
+      addr:"Paul-Heyse-Straße 24, 80336 Munich, Germany", status:"Finalized", badge:"good" },
+    { city:"Brussels", dates:"Oct 4 – 7 · 3 nights", name:"Pillows City Hotel Brussels Centre",
+      addr:"Rue des Paroissiens 15–27, 1000 Brussels, Belgium", status:"Finalized", badge:"good" },
+    { city:"Amsterdam", dates:"Oct 7 – 10 · 3 nights", name:"Hotel Mercier",
+      addr:"Rozenstraat 12, 1016 NX Amsterdam, Netherlands", status:"Booked", badge:"good" },
+    { city:"Frankfurt", dates:"Oct 10 – 11 · 1 night", name:"Sheraton Frankfurt Airport Hotel & Conference Center",
+      addr:"Hugo-Eckener-Ring 15, 60549 Frankfurt am Main, Germany", status:"Booked", badge:"good" }
+  ];
+
+  var LEGS = [
+    { mode:"train", route:"Frankfurt Airport → Heidelberg", dur:"~45m–1h", meta:"Direct, frequent regional service" },
+    { mode:"train", route:"Heidelberg → Munich", dur:"~2h30–3h", meta:"Mostly one change, e.g. via Stuttgart" },
+    { mode:"train", route:"Munich ↔ Salzburg (day trip)", dur:"~1h30 ea.", meta:"Direct, roughly hourly" },
+    { mode:"train", route:"Munich → Brussels", dur:"~6h45–9h", meta:"1–2 changes via Cologne, no direct service" },
+    { mode:"train", route:"Brussels → Ghent → Bruges (day trip)", dur:"~30m + 25m", meta:"Ghent sits right on the Brussels–Bruges line" },
+    { mode:"train", route:"Bruges → Brussels (return)", dur:"~1h15", meta:"Direct, frequent" },
+    { mode:"train", route:"Brussels → Amsterdam", dur:"~1h50", meta:"Eurostar/Thalys, direct high-speed" },
+    { mode:"train", route:"Amsterdam → Frankfurt Airport", dur:"~3h38m", meta:"Book straight to the Fernbahnhof, not Hbf" },
+    { mode:"air", route:"Frankfurt → Hyderabad", dur:"—", meta:"1:00pm departure, Oct 11" },
+    { mode:"air", route:"Hyderabad → Austin", dur:"—", meta:"Oct 29 — the trip home" }
+  ];
+
+  var ACTIVITIES = [
+    { date:"Oct 2", title:"Oktoberfest tent table reservation", status:"Optional", badge:"neutral",
+      desc:"Not required to get in, but worth it for guaranteed seating at peak hours." },
+    { date:"Oct 3", title:"Salzburg sightseeing", status:"No booking needed", badge:"good",
+      desc:"Self-guided — Altstadt, fortress, St. Peter's Abbey, Augustiner Bräustübl." },
+    { date:"Oct 5", title:"Belgian Chocolate Making Workshop", status:"To book", badge:"warn",
+      desc:"2:00–4:30pm · Voldersstraat 30, Brussels · 2.5 hrs · <span class=\"price\">~$69/person</span> · hot chocolate + a box of your own chocolates included. Book via belgianchocolateworkshop.com or GetYourGuide/Viator." },
+    { date:"Oct 8 or 9", title:"Anne Frank House", status:"To book", badge:"warn",
+      desc:"Timed entry · <span class=\"price\">~€16/adult</span> · tickets release weekly on Tuesdays at 10am Amsterdam time — book as soon as your week's slots open." }
+  ];
+
+  var activateTab; // assigned by setupTabs, called from pill clicks
+
+  function el(tag, cls, html){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(html !== undefined) e.innerHTML = html;
+    return e;
+  }
+
+  function shortDate(d){
+    var parts = d.split(', ');
+    return parts.length > 1 ? parts[1] : d;
+  }
+
+  function scrollToDay(dayNum){
+    if(typeof activateTab === 'function') activateTab('itinerary');
+    var target = document.getElementById('day-card-' + dayNum);
+    if(!target) return;
+    window.requestAnimationFrame(function(){
+      target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      target.classList.remove('jumped');
+      void target.offsetWidth; // restart animation if clicked twice
+      target.classList.add('jumped');
+      window.setTimeout(function(){ target.classList.remove('jumped'); }, 1200);
+    });
+  }
+
+  function renderPills(){
+    var row = document.getElementById('pillrow');
+    DAYS.forEach(function(d){
+      var btn = el('button','pill', shortDate(d.date));
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Jump to Day ' + d.day + ', ' + d.date);
+      btn.addEventListener('click', function(){ scrollToDay(d.day); });
+      row.appendChild(btn);
+    });
+  }
+
+  function renderItinerary(){
+    var p = document.getElementById('panel-itinerary');
+    p.appendChild(el('div','section-label','Day by day'));
+    DAYS.forEach(function(d){
+      var card = el('div','day-card');
+      card.id = 'day-card-' + d.day;
+      var head = el('div','day-head');
+      var left = el('div','day-head-left',
+        '<span class="day-num">DAY '+d.day+'</span><span class="day-date">'+d.date+'</span>');
+      head.appendChild(left);
+      head.appendChild(el('span','tag '+d.tag, d.tagLabel));
+      card.appendChild(head);
+      card.appendChild(el('div','day-city', d.city));
+      card.appendChild(el('p','day-title', d.title));
+      var body = el('div','day-body');
+      var ul = el('ul');
+      d.bullets.forEach(function(b){ ul.appendChild(el('li',null,b)); });
+      body.appendChild(ul);
+      card.appendChild(body);
+      if(d.note) card.appendChild(el('div','note', d.note));
+      p.appendChild(card);
+    });
+    p.appendChild(el('div','section-label','Onward'));
+    MILESTONES.forEach(function(m){
+      var row = el('div','milestone');
+      row.appendChild(el('div','m-date', m.date));
+      row.appendChild(el('div','m-text', m.text));
+      p.appendChild(row);
+    });
+  }
+
+  function renderHotels(){
+    var p = document.getElementById('panel-hotels');
+    p.appendChild(el('div','section-label','All five nights, booked'));
+    HOTELS.forEach(function(h){
+      var card = el('div','hotel-card');
+      var top = el('div','hotel-top');
+      var left = el('div',null,
+        '<div class="hotel-city">'+h.city+'</div><div class="hotel-dates">'+h.dates+'</div>');
+      top.appendChild(left);
+      top.appendChild(el('span','badge '+h.badge, h.status));
+      card.appendChild(top);
+      card.appendChild(el('div','hotel-name', h.name));
+      card.appendChild(el('div','hotel-addr', h.addr));
+      p.appendChild(card);
+    });
+  }
+
+  function renderTrains(){
+    var p = document.getElementById('panel-trains');
+    p.appendChild(el('div','section-label','Getting between cities'));
+    LEGS.forEach(function(l){
+      var card = el('div','leg-card');
+      var icon = el('div','leg-icon'+(l.mode==='air' ? ' air' : ''), l.mode==='air' ? '✈️' : '🚆');
+      card.appendChild(icon);
+      var main = el('div','leg-main',
+        '<div class="leg-route">'+l.route+'</div><div class="leg-meta">'+l.meta+'</div>');
+      card.appendChild(main);
+      card.appendChild(el('div','leg-dur', l.dur));
+      p.appendChild(card);
+    });
+  }
+
+  function renderActivities(){
+    var p = document.getElementById('panel-activities');
+    p.appendChild(el('div','section-label','Booked & to-book'));
+    ACTIVITIES.forEach(function(a){
+      var card = el('div','act-card');
+      var top = el('div','act-top');
+      top.appendChild(el('div','act-date', a.date));
+      top.appendChild(el('span','badge '+a.badge, a.status));
+      card.appendChild(top);
+      card.appendChild(el('p','act-title', a.title));
+      card.appendChild(el('div','act-desc', a.desc));
+      p.appendChild(card);
+    });
+  }
+
+  function setupTabs(){
+    var buttons = document.querySelectorAll('#tabbar button');
+    var panels = {
+      itinerary: document.getElementById('panel-itinerary'),
+      hotels: document.getElementById('panel-hotels'),
+      trains: document.getElementById('panel-trains'),
+      activities: document.getElementById('panel-activities')
+    };
+    function activate(name, keepScroll){
+      Object.keys(panels).forEach(function(k){ panels[k].hidden = (k !== name); });
+      buttons.forEach(function(b){
+        b.setAttribute('aria-selected', b.getAttribute('data-tab') === name ? 'true' : 'false');
+      });
+      try{ localStorage.setItem('europeTripTab', name); }catch(e){}
+      if(!keepScroll) document.querySelector('main').scrollTop = 0;
+    }
+    buttons.forEach(function(b){
+      b.addEventListener('click', function(){ activate(b.getAttribute('data-tab')); });
+    });
+    var last = 'itinerary';
+    try{ last = localStorage.getItem('europeTripTab') || 'itinerary'; }catch(e){}
+    activate(last);
+    activateTab = function(name){ activate(name, true); };
+  }
+
+  renderPills();
+  renderItinerary();
+  renderHotels();
+  renderTrains();
+  renderActivities();
+  setupTabs();
+})();
+</script>
