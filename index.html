@@ -310,13 +310,14 @@
       ],
       note:"A Luxembourg overnight stopover (Munich → Frankfurt → Luxembourg, ~6–6.5h) is still just an option being considered — not built into this plan yet."},
     { day:5, date:"Mon, Oct 5", tag:"stay", tagLabel:"Brussels", city:"Brussels",
-      title:"Full day in Brussels — including the chocolate-making class",
+      title:"Full day in Brussels — chocolate class in the late afternoon",
       bullets:[
         "Morning: Grand Place, Manneken Pis, Mont des Arts, the Royal Galleries for chocolate shopping",
-        "Lunch: mussels and fries near the Grand Place, finished by ~1:30pm",
-        "<strong>2:00–4:30pm — Belgian Chocolate Making Workshop</strong>, Voldersstraat 30 · ~2.5 hrs · ~$69/person",
-        "Evening: the Atomium/EU Quarter, or a relaxed Belgian beer tasting"
-      ]},
+        "Lunch, then a free afternoon — the Atomium or EU Quarter if you want to fit it in before the workshop",
+        "<strong>4:30–7:00pm — Belgian Chocolate Workshop</strong>, Voldersstraat 30 · 2.5 hrs · arrive by 4:25pm",
+        "Evening: dinner near the workshop — you'll be right by the Anneessens/Grand Place area already"
+      ],
+      note:"Booked with 1USUAL Experiences Belgium, 2 adults, booking #254609158936578. Arriving more than 15 minutes late forfeits the spot with no refund, so build in buffer time getting there."},
     { day:6, date:"Tue, Oct 6", tag:"daytrip", tagLabel:"Day Trip", city:"Ghent & Bruges",
       title:"Ghent on the way to Bruges",
       bullets:[
@@ -404,8 +405,8 @@
       desc:"Not required to get in, but worth it for guaranteed seating at peak hours." },
     { date:"Oct 3", title:"Salzburg sightseeing", status:"No booking needed", badge:"good",
       desc:"Self-guided — Altstadt, fortress, St. Peter's Abbey, Augustiner Bräustübl." },
-    { date:"Oct 5", title:"Belgian Chocolate Making Workshop", status:"To book", badge:"warn",
-      desc:"2:00–4:30pm · Voldersstraat 30, Brussels · 2.5 hrs · <span class=\"price\">~$69/person</span> · hot chocolate + a box of your own chocolates included. Book via belgianchocolateworkshop.com or GetYourGuide/Viator." },
+    { date:"Oct 5", title:"Belgian Chocolate Workshop", status:"Booked", badge:"good",
+      desc:"4:30–7:00pm (arrive by 4:25pm) · Voldersstraat 30, 1000 Brussels · 2.5 hrs, in English · 2 adults · <span class=\"price\">€113.20 paid in full</span> · with 1USUAL Experiences Belgium · Booking #254609158936578." },
     { date:"Oct 9", title:"Anne Frank House", status:"Booked", badge:"good",
       desc:"Introductory program (English) · 7:45pm entry, Entrance 2 · 2 adult tickets · <span class=\"price\">€23.50/adult</span> · tickets are on your phone as a QR code — no printing needed. Arrive 5 minutes early; no large bags or trolleys." }
   ];
@@ -498,11 +499,18 @@
     p.appendChild(card);
   }
 
+  var DEFAULT_DONE_TASKS = ["t5"]; // already booked, per confirmed bookings
+
   function loadTaskState(){
+    var state = {};
     try{
       var raw = localStorage.getItem('europeTripTasks');
-      return raw ? JSON.parse(raw) : {};
-    }catch(e){ return {}; }
+      state = raw ? JSON.parse(raw) : {};
+    }catch(e){ state = {}; }
+    DEFAULT_DONE_TASKS.forEach(function(id){
+      if(!(id in state)) state[id] = true;
+    });
+    return state;
   }
   function saveTaskState(state){
     try{ localStorage.setItem('europeTripTasks', JSON.stringify(state)); }catch(e){}
